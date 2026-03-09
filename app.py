@@ -15,8 +15,12 @@ app.add_middleware(
 
 SIZE = 70
 density = 0.25
+grid = None
+
 
 def generate_grid():
+
+    global grid
 
     grid = [[0 for _ in range(SIZE)] for _ in range(SIZE)]
 
@@ -30,24 +34,20 @@ def generate_grid():
 
     return grid
 
-grid = generate_grid()
-
 
 def astar(grid, start, goal):
 
     SIZE = len(grid)
-
     moves = [(-1,0),(1,0),(0,-1),(0,1)]
 
-    def heuristic(a, b):
-        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    def heuristic(a,b):
+        return abs(a[0]-b[0]) + abs(a[1]-b[1])
 
     open_set = []
-    heapq.heappush(open_set, (0, start))
+    heapq.heappush(open_set,(0,start))
 
     came_from = {}
-
-    g_score = {start: 0}
+    g_score = {start:0}
 
     while open_set:
 
@@ -64,13 +64,13 @@ def astar(grid, start, goal):
             path.reverse()
             return path
 
-        x, y = current
+        x,y = current
 
-        for dx, dy in moves:
+        for dx,dy in moves:
 
             nx = x + dx
             ny = y + dy
-            neighbor = (nx, ny)
+            neighbor = (nx,ny)
 
             if not (0 <= nx < SIZE and 0 <= ny < SIZE):
                 continue
@@ -78,55 +78,70 @@ def astar(grid, start, goal):
             if grid[nx][ny] == 1:
                 continue
 
-            tentative_g = g_score[current] + 1
+            tentative = g_score[current] + 1
 
-            if neighbor not in g_score or tentative_g < g_score[neighbor]:
+            if neighbor not in g_score or tentative < g_score[neighbor]:
 
                 came_from[neighbor] = current
-                g_score[neighbor] = tentative_g
+                g_score[neighbor] = tentative
 
-                f_score = tentative_g + heuristic(neighbor, goal)
+                f = tentative + heuristic(neighbor,goal)
 
-                heapq.heappush(open_set, (f_score, neighbor))
+                heapq.heappush(open_set,(f,neighbor))
 
     return None
 
 
-def parse_node(node: str):
-    x, y = map(int, node.replace(" ", "").split(","))
-    return (x, y)
+def parse_node(node:str):
+    x,y = map(int,node.replace(" ","").split(","))
+    return (x,y)
+
+@app.post("/set-density")
+def set_density(value: float):
+
+    global density
+
+    if not 0 <= value <= 1:
+        return {"error":"density must be between 0 and 1"}
+
+    density = value
+
+    return {"density":density}
+
+@app.post("/generate-grid")
+def create_grid():
+
+    grid = generate_grid()
+
+    return {"grid":grid}
 
 
 @app.get("/astar")
-def run_astar(start: str, goal: str):
+def run_astar(start:str,goal:str):
+
+    if grid is None:
+        return {"error":"grid not generated yet"}
 
     start_node = parse_node(start)
     goal_node = parse_node(goal)
 
-    path = astar(grid, start_node, goal_node)
+    path = astar(grid,start_node,goal_node)
 
     if path is None:
         return {
-            "start": start_node,
-            "goal": goal_node,
-            "path": None,
-            "distance": None,
-            "message": "No path found"
+            "message":"No path found"
         }
 
     return {
-        "start": start_node,
-        "goal": goal_node,
-        "path": path,
-        "distance": len(path)
+        "path":path,
+        "distance":len(path)-1
     }
+
 
 @app.get("/grid")
 def get_grid():
-    return {"grid": grid}
 
-@app.post("/reset-grid")
-def reset_grid():
-    global grid
-    grid = generate_grid()
-    return {"grid": grid}
+    if grid is None:
+        return {"error":"grid not generated"}
+
+    return {"grid":grid}
