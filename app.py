@@ -16,15 +16,21 @@ app.add_middleware(
 SIZE = 70
 density = 0.25
 
-grid = [[0 for _ in range(SIZE)] for _ in range(SIZE)]
+def generate_grid():
 
-for i in range(SIZE):
-    for j in range(SIZE):
-        if random.random() < density:
-            grid[i][j] = 1
+    grid = [[0 for _ in range(SIZE)] for _ in range(SIZE)]
 
-grid[0][0] = 0
-grid[69][69] = 0
+    for i in range(SIZE):
+        for j in range(SIZE):
+            if random.random() < density:
+                grid[i][j] = 1
+
+    grid[0][0] = 0
+    grid[69][69] = 0
+
+    return grid
+
+grid = generate_grid()
 
 
 def astar(grid, start, goal):
@@ -114,3 +120,13 @@ def run_astar(start: str, goal: str):
         "path": path,
         "distance": len(path)
     }
+
+@app.get("/grid")
+def get_grid():
+    return {"grid": grid}
+
+@app.post("/reset-grid")
+def reset_grid():
+    global grid
+    grid = generate_grid()
+    return {"grid": grid}
