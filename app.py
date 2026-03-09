@@ -19,7 +19,6 @@ grid = None
 
 
 def generate_grid():
-
     global grid
 
     grid = [[0 for _ in range(SIZE)] for _ in range(SIZE)]
@@ -92,9 +91,13 @@ def astar(grid, start, goal):
     return None
 
 
-def parse_node(node:str):
-    x,y = map(int,node.replace(" ","").split(","))
-    return (x,y)
+def parse_node(node: str):
+    try:
+        x, y = map(int, node.replace(" ", "").split(","))
+        return (x, y)
+    except:
+        return None
+
 
 @app.post("/set-density")
 def set_density(value: float):
@@ -102,46 +105,44 @@ def set_density(value: float):
     global density
 
     if not 0 <= value <= 1:
-        return {"error":"density must be between 0 and 1"}
+        return {"error": "density must be between 0 and 1"}
 
     density = value
 
-    return {"density":density}
+    return {"density": density}
+
 
 @app.post("/generate-grid")
 def create_grid():
-
     grid = generate_grid()
-
-    return {"grid":grid}
-
-
-@app.get("/astar")
-def run_astar(start:str,goal:str):
-
-    if grid is None:
-        return {"error":"grid not generated yet"}
-
-    start_node = parse_node(start)
-    goal_node = parse_node(goal)
-
-    path = astar(grid,start_node,goal_node)
-
-    if path is None:
-        return {
-            "message":"No path found"
-        }
-
-    return {
-        "path":path,
-        "distance":len(path)-1
-    }
+    return {"grid": grid}
 
 
 @app.get("/grid")
 def get_grid():
+    if grid is None:
+        return {"grid": []}
+    return {"grid": grid}
+
+
+@app.get("/astar")
+def run_astar(start: str, goal: str):
 
     if grid is None:
-        return {"error":"grid not generated"}
+        return {"error": "grid not generated yet"}
 
-    return {"grid":grid}
+    start_node = parse_node(start)
+    goal_node = parse_node(goal)
+
+    if start_node is None or goal_node is None:
+        return {"error": "invalid start or goal format"}
+
+    path = astar(grid, start_node, goal_node)
+
+    if path is None:
+        return {"message": "No path found"}
+
+    return {
+        "path": path,
+        "distance": len(path) - 1
+    }

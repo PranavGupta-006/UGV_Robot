@@ -9,7 +9,6 @@
   --hover-border: #444444;
 }
 
-/* Base Layout */
 
 body {
   margin: 0;
@@ -30,7 +29,7 @@ body {
 
 .container {
   width: 100%;
-  max-width: 700px; /* increased for grid */
+  max-width: 700px; 
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
@@ -38,7 +37,6 @@ body {
   box-sizing: border-box;
 }
 
-/* Typography */
 
 .title {
   font-size: 24px;
@@ -62,7 +60,6 @@ body {
   margin: 0;
 }
 
-/* Controls */
 
 .controls {
   display: flex;
@@ -96,8 +93,6 @@ input:focus {
   border-color: var(--text-secondary);
 }
 
-/* Button */
-
 .compute-btn {
   width: 100%;
   background: var(--text-primary);
@@ -121,7 +116,6 @@ input:focus {
   cursor: not-allowed;
 }
 
-/* Grid */
 
 .grid-container {
   display: grid;
@@ -144,7 +138,6 @@ input:focus {
   transition: background 0.1s linear;
 }
 
-/* Cell states */
 
 .cell-start {
   background: #00ff99;
@@ -167,7 +160,6 @@ input:focus {
   background: #ffd500;
 }
 
-/* Result Section */
 
 .result {
   margin-top: 32px;
@@ -197,7 +189,6 @@ input:focus {
   margin-top: 8px;
 }
 
-/* Path Output */
 
 .path-box {
   margin-top: 20px;
@@ -221,9 +212,73 @@ input:focus {
   border-radius: 4px;
 }
 
-/* Animation */
 
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+.input-group input[type="number"] {
+  appearance: textfield;
+}
+
+.input-group input::-webkit-outer-spin-button,
+.input-group input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+.compute-btn:hover {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--hover-border);
+}
+
+
+.grid-container::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.grid-container::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+
+
+@media (max-width: 800px) {
+
+  .container {
+    padding: 24px;
+    max-width: 95%;
+  }
+
+  .grid-container {
+    max-height: 420px;
+  }
+
+}
+
+
+.cell-bot {
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(255,255,255,0.6);
+  transition: background 0.05s linear, transform 0.05s linear;
 }

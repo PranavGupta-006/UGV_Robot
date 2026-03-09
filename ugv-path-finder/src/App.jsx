@@ -7,6 +7,8 @@ export default function App() {
   const [start, setStart] = useState("0,0");
   const [goal, setGoal] = useState("69,69");
 
+  const [density, setDensity] = useState(0.25);
+
   const [grid, setGrid] = useState([]);
   const [path, setPath] = useState([]);
   const [botIndex, setBotIndex] = useState(-1);
@@ -17,9 +19,20 @@ export default function App() {
   }, []);
 
   const fetchGrid = async () => {
-    const res = await fetch("http://localhost:8000/grid");
-    const data = await res.json();
-    setGrid(data.grid);
+    try {
+      const res = await fetch("http://localhost:8000/grid");
+      const data = await res.json();
+
+      if (Array.isArray(data.grid)) {
+        setGrid(data.grid);
+      } else {
+        setGrid([]);
+      }
+
+    } catch (err) {
+      console.error("Grid fetch failed:", err);
+      setGrid([]);
+    }
   };
 
   const reset = () => {
@@ -47,18 +60,63 @@ export default function App() {
 
     setLoading(true);
 
-    const res = await fetch(
-      `http://localhost:8000/astar?start=${start}&goal=${goal}`
-    );
+    try {
 
-    const data = await res.json();
+      const res = await fetch(
+        `http://localhost:8000/astar?start=${start}&goal=${goal}`
+      );
 
-    if (data.path) {
-      setPath(data.path);
-      startBotAnimation(data.path);
+      const data = await res.json();
+
+      if (data.path) {
+        setPath(data.path);
+        startBotAnimation(data.path);
+      }
+
+    } catch (err) {
+      console.error("A* failed:", err);
     }
 
     setLoading(false);
+  };
+
+  const generateGrid = async () => {
+
+    try {
+
+      await fetch(
+        `http://localhost:8000/set-density?value=${Number(density)}`,
+        { method: "POST" }
+      );
+
+      await fetch(
+        "http://localhost:8000/generate-grid",
+        { method: "POST" }
+      );
+
+      await fetchGrid();
+      reset();
+
+    } catch (err) {
+      console.error("Grid generation failed:", err);
+    }
+  };
+
+  const resetGrid = async () => {
+
+    try {
+
+      await fetch(
+        "http://localhost:8000/generate-grid",
+        { method: "POST" }
+      );
+
+      await fetchGrid();
+      reset();
+
+    } catch (err) {
+      console.error("Grid reset failed:", err);
+    }
   };
 
   const isPathCell = (row,col) =>
@@ -97,10 +155,38 @@ export default function App() {
             />
           </div>
 
+          <div className="input-group">
+            <label>Obstacle Density</label>
+            <input
+              type="number"
+              step="0.05"
+              min="0"
+              max="1"
+              value={density}
+              onChange={(e)=>setDensity(Number(e.target.value))}
+            />
+          </div>
+
+          <button
+            className="compute-btn"
+            onClick={generateGrid}
+          >
+            Generate Grid
+          </button>
+
+          <button
+            className="compute-btn"
+            onClick={resetGrid}
+            style={{marginTop:"10px"}}
+          >
+            New Random Grid
+          </button>
+
           <button
             className="compute-btn"
             onClick={computePath}
             disabled={loading}
+            style={{marginTop:"10px"}}
           >
             {loading ? "Computing..." : "Start Navigation"}
           </button>
@@ -110,7 +196,7 @@ export default function App() {
             onClick={reset}
             style={{marginTop:"10px"}}
           >
-            Reset
+            Reset Path
           </button>
 
         </div>
@@ -120,7 +206,7 @@ export default function App() {
           style={{gridTemplateColumns:`repeat(${GRID_SIZE},8px)`}}
         >
 
-          {grid.length > 0 && grid.flatMap((row,rowIndex) =>
+          {Array.isArray(grid) && grid.length > 0 && grid.flatMap((row,rowIndex) =>
             row.map((cell,colIndex) => {
 
               let className = "grid-cell";
