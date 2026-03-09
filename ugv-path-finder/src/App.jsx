@@ -101,7 +101,6 @@ export default function App() {
       console.error("Grid generation failed:", err);
     }
   };
-
   const resetGrid = async () => {
 
     try {
@@ -134,8 +133,8 @@ export default function App() {
 
       <div className="container">
 
-        <h1 className="title">UGV Path Simulator</h1>
-        <p className="subtitle">A* Battlefield Navigation</p>
+        <h1 className="title">Unmanned Ground Vehicle Path Finder</h1>
+        <p className="subtitle">BattleField Pathfinder using A<sup>*</sup>Algorithm</p>
 
         <div className="controls">
 
@@ -156,7 +155,7 @@ export default function App() {
           </div>
 
           <div className="input-group">
-            <label>Obstacle Density</label>
+            <label>Obstacle Density(Between 0-1)</label>
             <input
               type="number"
               step="0.05"
@@ -171,15 +170,7 @@ export default function App() {
             className="compute-btn"
             onClick={generateGrid}
           >
-            Generate Grid
-          </button>
-
-          <button
-            className="compute-btn"
-            onClick={resetGrid}
-            style={{marginTop:"10px"}}
-          >
-            New Random Grid
+            Generate New Grid
           </button>
 
           <button
