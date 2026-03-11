@@ -90,6 +90,62 @@ def astar(grid, start, goal):
 
     return None
 
+def astardynamic(grid, start, goal):
+
+    SIZE = len(grid)
+    moves = [(-1,0),(1,0),(0,-1),(0,1)]
+
+    def heuristic(a,b):
+        return abs(a[0]-b[0]) + abs(a[1]-b[1])
+
+    open_set = []
+    heapq.heappush(open_set,(0,start))
+
+    came_from = {}
+    g_score = {start:0}
+
+    while open_set:
+
+        current = heapq.heappop(open_set)[1]
+        grid = generate_grid()
+
+        if current == goal:
+
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+
+            path.append(start)
+            path.reverse()
+            return path
+
+        x,y = current
+
+        for dx,dy in moves:
+
+            nx = x + dx
+            ny = y + dy
+            neighbor = (nx,ny)
+
+            if not (0 <= nx < SIZE and 0 <= ny < SIZE):
+                continue
+
+            if grid[nx][ny] == 1:
+                continue
+
+            tentative = g_score[current] + 1
+
+            if neighbor not in g_score or tentative < g_score[neighbor]:
+
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative
+
+                f = tentative + heuristic(neighbor,goal)
+
+                heapq.heappush(open_set,(f,neighbor))
+
+    return None
 
 def parse_node(node: str):
     try:
@@ -138,6 +194,28 @@ def run_astar(start: str, goal: str):
         return {"error": "invalid start or goal format"}
 
     path = astar(grid, start_node, goal_node)
+
+    if path is None:
+        return {"message": "No path found"}
+
+    return {
+        "path": path,
+        "distance": len(path) - 1
+    }
+
+@app.get("/astardynamic")
+def run_astardynamic(start: str, goal: str):
+
+    if grid is None:
+        return {"error": "grid not generated yet"}
+
+    start_node = parse_node(start)
+    goal_node = parse_node(goal)
+
+    if start_node is None or goal_node is None:
+        return {"error": "invalid start or goal format"}
+
+    path = astardynamic(grid, start_node, goal_node)
 
     if path is None:
         return {"message": "No path found"}

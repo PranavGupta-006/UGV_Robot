@@ -42,19 +42,22 @@ export default function App() {
 
   const startBotAnimation = (pathData) => {
 
-    let i = 0;
+  let i = 0;
 
-    const interval = setInterval(() => {
+  const interval = setInterval(async () => {
 
-      setBotIndex(i);
-      i++;
+    setBotIndex(i);
 
-      if (i >= pathData.length) {
-        clearInterval(interval);
-      }
+    await fetchGrid();
 
-    }, 30);
-  };
+    i++;
+
+    if (i >= pathData.length) {
+      clearInterval(interval);
+    }
+
+  }, 30);
+};
 
   const computePath = async () => {
 
@@ -64,6 +67,30 @@ export default function App() {
 
       const res = await fetch(
         `http://localhost:8000/astar?start=${start}&goal=${goal}`
+      );
+
+      const data = await res.json();
+
+      if (data.path) {
+        setPath(data.path);
+        startBotAnimation(data.path);
+      }
+
+    } catch (err) {
+      console.error("A* failed:", err);
+    }
+
+    setLoading(false);
+  };
+
+  const computePathdynamic = async () => {
+
+    setLoading(true);
+
+    try {
+
+      const res = await fetch(
+        `http://localhost:8000/astardynamic?start=${start}&goal=${goal}`
       );
 
       const data = await res.json();
@@ -180,6 +207,15 @@ export default function App() {
             style={{marginTop:"10px"}}
           >
             {loading ? "Computing..." : "Start Navigation"}
+          </button>
+
+          <button
+            className="compute-btn"
+            onClick={computePathdynamic}
+            disabled={loading}
+            style={{marginTop:"10px"}}
+          >
+            {loading ? "Computing..." : "Start Dynamic Path Navigation"}
           </button>
 
           <button
