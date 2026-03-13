@@ -1,8 +1,8 @@
-# UGV Path Finding Algorithm
+# UGV Path Finding System
 
-A lightweight backend service that simulates path planning for an **Unmanned Ground Vehicle (UGV)** in a grid-based environment. The system generates a map with obstacles and computes the shortest path between two points using graph search algorithms.
+A lightweight backend service that simulates autonomous path planning for an Unmanned Ground Vehicle (UGV) in a grid-based environment. The system generates a map with obstacles and computes the shortest navigable route between two points using graph search algorithms.
 
-The project exposes a REST API using **FastAPI**, allowing external applications or visualizers to request optimal paths dynamically.
+The project exposes a REST API via FastAPI, allowing external applications, simulators, or visualization tools to request optimal paths dynamically. A frontend interface built with HTML, CSS, and JavaScript is included for interacting with the system directly in the browser.
 
 ---
 
@@ -10,60 +10,128 @@ The project exposes a REST API using **FastAPI**, allowing external applications
 
 Autonomous ground vehicles must navigate environments containing obstacles while minimizing travel cost. This project implements a grid-based navigation system where:
 
-* The environment is represented as a **2D grid**
-* Cells may contain **free space or obstacles**
-* The grid is interpreted as a **graph**
-* The algorithm computes the **optimal path** between a start and goal position
+- The environment is represented as a 2D grid
+- Cells may contain free space or obstacles placed randomly
+- The grid is interpreted as a weighted graph
+- A graph search algorithm computes the optimal path between a start and goal position
 
-The service returns the computed route via an API, making it suitable for integration with simulators, robotics interfaces, or visualization tools.
+The backend returns the computed route via a REST API, making it suitable for integration with simulators, robotics interfaces, or custom visualization tools.
 
 ---
 
 ## Features
 
-* Grid-based environment generation
-* Random obstacle placement
-* Graph-based path computation
-* REST API interface using FastAPI
-* Lightweight and easily deployable
-* Designed for experimentation with pathfinding algorithms
+- Grid-based environment generation with configurable size and obstacle density
+- Random obstacle placement to simulate real-world terrain variation
+- Graph-based shortest path computation using a heap-based priority queue
+- REST API built with FastAPI
+- Interactive frontend built with HTML, CSS, and JavaScript
+- Lightweight and easily deployable with minimal dependencies
+- Designed for experimentation and extension with additional algorithms
 
 ---
 
-## Project Structure
+## Repository Structure
 
 ```
-.
-├── main.py          # FastAPI server and pathfinding logic
-├── data.csv         # Optional graph dataset (if used)
-├── requirements.txt # Python dependencies
+UGV_Robot/
+│
+├── ugv-path-finder/       Frontend interface (HTML, CSS, JavaScript)
+├── app.py                 Main FastAPI backend entry point
+├── app0.py                Core pathfinding logic and grid generation
+├── package.json           Node metadata for frontend tooling
+├── package-lock.json
+├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Pathfinding Approach
+## Algorithm
 
-The environment is modeled as a **graph** where:
+The environment is modeled as a graph where each grid cell is a node and adjacent cells form edges. Edge weights represent movement cost between cells.
 
-* Each grid cell is a node
-* Adjacent cells form edges
-* Edge weights represent movement cost
+**Supported movement directions:**
 
-Typical movement directions include:
+- Up
+- Down
+- Left
+- Right
 
-* Up
-* Down
-* Left
-* Right
+The pathfinding logic maintains a priority queue and repeatedly expands the lowest-cost node until the destination is reached or all reachable nodes have been processed.
 
-The algorithm maintains a **priority queue** and repeatedly expands the lowest-cost node until the destination is reached.
+**Default algorithm:** Dijkstra's Algorithm
 
-Common algorithms suitable for this framework include:
+**Time Complexity** (with a binary heap / priority queue):
 
-* Dijkstra's Algorithm
-* A* Search
-* Breadth-First Search (for uniform cost)
+```
+O((V + E) log V)
+```
+
+Where `V` = number of nodes (grid cells) and `E` = number of edges (adjacencies between cells).
+
+The modular structure also allows substitution with A* Search or Breadth-First Search for uniform-cost environments.
+
+---
+
+## Configuration
+
+The following parameters control the environment and can be modified directly in `app0.py`:
+
+| Parameter     | Description                                                         |
+|---------------|---------------------------------------------------------------------|
+| `SIZE`        | Width and height of the grid                                        |
+| `density`     | Probability (0.0 to 1.0) that any given cell is an obstacle         |
+| Movement cost | Weight assigned to each step between adjacent cells                 |
+
+Higher density values create denser obstacle fields. Setting density to `0` produces an open grid with no obstacles.
+
+---
+
+## System Requirements
+
+- Python 3.8 or higher
+- pip
+- A modern web browser (for the frontend)
+
+---
+
+## Installing Python and pip
+
+**macOS**
+
+```bash
+# Check if Python is already installed
+python3 --version
+
+# Install via Homebrew if not present
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install python
+
+# Verify pip
+pip3 --version
+```
+
+**Linux (Ubuntu / Debian)**
+
+```bash
+sudo apt update
+sudo apt install python3 python3-pip python3-venv
+
+python3 --version
+pip3 --version
+```
+
+**Windows**
+
+Download Python from [python.org/downloads](https://www.python.org/downloads/) and run the installer.
+
+Important: Enable the option **Add Python to PATH** during installation.
+
+```cmd
+python --version
+pip --version
+```
 
 ---
 
@@ -72,24 +140,37 @@ Common algorithms suitable for this framework include:
 Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/ugv-pathfinding.git
-cd ugv-pathfinding
+git clone https://github.com/PranavGupta-006/UGV_Robot.git
+cd UGV_Robot
 ```
 
-Install dependencies:
+Create and activate a Python virtual environment:
 
 ```bash
-pip install -r requirements.txt
+# Create the environment
+python3 -m venv venv
+
+# Activate on macOS / Linux
+source venv/bin/activate
+
+# Activate on Windows
+venv\Scripts\activate
+```
+
+Install backend dependencies:
+
+```bash
+pip install fastapi uvicorn numpy
 ```
 
 ---
 
-## Running the Server
+## Running the Backend
 
-Start the FastAPI server using:
+Start the FastAPI server:
 
 ```bash
-uvicorn main:app --reload
+uvicorn app:app --reload
 ```
 
 The API will be available at:
@@ -98,7 +179,7 @@ The API will be available at:
 http://127.0.0.1:8000
 ```
 
-Interactive API documentation:
+Interactive API documentation (auto-generated by FastAPI):
 
 ```
 http://127.0.0.1:8000/docs
@@ -106,71 +187,104 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## API Example
+## Running the Frontend
 
-### Request
+Open the `ugv-path-finder` directory and launch `index.html` directly in your browser, or serve it with a simple local server:
+
+```bash
+cd ugv-path-finder
+
+# Using Python's built-in HTTP server
+python3 -m http.server 8080
+```
+
+Then open:
+
+```
+http://localhost:8080
+```
+
+The frontend communicates with the FastAPI backend to request path computations and display results.
+
+---
+
+## API Reference
+
+### Compute Path
+
+```
+GET /path?start_x={x}&start_y={y}&end_x={x}&end_y={y}
+```
+
+**Query Parameters:**
+
+| Parameter | Type    | Description                     |
+|-----------|---------|---------------------------------|
+| `start_x` | integer | X coordinate of the start cell  |
+| `start_y` | integer | Y coordinate of the start cell  |
+| `end_x`   | integer | X coordinate of the goal cell   |
+| `end_y`   | integer | Y coordinate of the goal cell   |
+
+**Example Request:**
 
 ```
 GET /path?start_x=0&start_y=0&end_x=20&end_y=30
 ```
 
-### Response
+**Example Response:**
 
 ```json
 {
-  "path": [[0,0],[0,1],[1,1],[2,1],...],
+  "path": [[0,0],[0,1],[1,1],[2,1]],
   "distance": 52
 }
 ```
 
+If no path exists between the start and goal due to obstacle placement, the response will indicate that no valid route was found.
+
 ---
 
-## Configuration
+## Example Workflow
 
-Important parameters that control the environment:
-
-| Parameter     | Description                        |
-| ------------- | ---------------------------------- |
-| `SIZE`        | Size of the grid                   |
-| `density`     | Probability of obstacles appearing |
-| movement cost | Weight assigned to each step       |
-
-These can be modified directly in the source code to simulate different terrains.
+1. Start the FastAPI backend server
+2. Open the frontend in your browser
+3. Enter the start and goal coordinates
+4. The backend generates a grid, places obstacles, and runs the pathfinding algorithm
+5. The computed shortest path and total distance are returned and displayed
 
 ---
 
 ## Use Cases
 
-This project can be extended for:
-
-* Robotics navigation simulations
-* Autonomous vehicle research
-* Algorithm benchmarking
-* Path planning visualization
-* AI search algorithm experimentation
+- Autonomous ground vehicle navigation simulations
+- Robotics path planning research and prototyping
+- Graph search algorithm benchmarking and comparison
+- AI and pathfinding algorithm experimentation
+- Educational demonstrations of grid-based navigation systems
 
 ---
 
-## Possible Improvements
+## Future Improvements
 
-Future extensions may include:
-
-* A* heuristic optimization
-* Diagonal movement
-* Dynamic obstacle updates
-* Real-time map streaming
-* Frontend visualization using React or Three.js
-* Integration with robotics simulators (ROS / Gazebo)
+- A* heuristic optimization for faster performance on large grids
+- Diagonal movement support
+- Dynamic obstacle updates during runtime
+- Real-time map streaming via WebSockets
+- Interactive grid visualization with React or Three.js
+- Integration with robotics simulators such as ROS or Gazebo
+- Support for weighted terrain types (mud, gravel, roads)
+- Exportable path data for use in external simulations
 
 ---
 
 ## Technologies Used
 
-* Python
-* FastAPI
-* NumPy
-* Heap-based priority queues
-* Graph search algorithms
+| Layer     | Technology                              |
+|-----------|-----------------------------------------|
+| Backend   | Python, FastAPI, Uvicorn                |
+| Algorithm | Dijkstra's Algorithm, NumPy, heapq      |
+| Frontend  | HTML, CSS, JavaScript                   |
+| API       | REST (JSON responses)                   |
 
 ---
 
